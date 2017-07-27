@@ -1,0 +1,314 @@
+#include <sstream> 
+#include <fstream>
+#include <ctime>
+#include <iomanip>
+#include <TSystem.h> 
+#include <TString.h>
+#include <TCanvas.h>
+#include <TCut.h>
+#include <TStyle.h>
+#include <TFile.h>
+#include <TLegend.h>
+#include <TH1F.h>
+#include <stdio.h>      /* printf */
+#include <math.h>       /* floor */
+#include <TChain.h>
+#include <TTree.h>
+#include <TF1.h>
+#include <TNtuple.h>
+#include <iostream>     //for using cout
+#include <stdlib.h>     //for using the function sleep
+using namespace std;
+
+void ratio_6_w() {
+		time_t start = time(0) ;
+
+
+	cout << "\n" << "\n";
+int run1 =0;
+int run2 =0;
+int MOD  =0;
+cout << "Please input the run numbers of the disturbution you like to look at the ratios of (1st/2nd)." <<endl;
+cin >> run1 ;
+cin >> run2 ;
+cout <<endl;
+
+
+	double ones = ceil(((run1/100.0 - run1/100)-.000001)*100);
+	int oness = ones;
+	char* one;
+
+	switch(oness){ 	case 2:  one = "D"; break;
+					case 3:  one = "He3"; break;
+					case 4:  one = "He4"; break;
+					case 9:  one = "Be9"; break;
+					case 12: one = "C12"; break;
+					case 16: one = "O16"; break;
+					case 40: one = "Ca40"; break;
+					default: one = "No label "  ; }
+
+	double twos = ceil(((run2/100.0 - run2/100)-.000001)*100);
+	if(run2==4002){twos = floor((run2/100.0 - run2/100)*100);}
+	int twoss = twos;
+	char* two;
+
+	switch(twoss){ 	case 2:  two = "D"; break;
+					case 3:  two = "He3"; break;
+					case 4:  two = "He4"; break;
+					case 9:  two = "Be9"; break;
+					case 12: two = "C12"; break;
+					case 16: two = "O16"; break;
+					case 40: two = "Ca40"; break;
+					default: two = "No label"; }
+
+
+
+  char* data_dir;
+  data_dir = getenv ("OUTPUT_DIR");
+  char* root_dir;
+  root_dir = getenv ("OUT_DIR");
+  char* img_dir;
+  img_dir = getenv ("IMG_DIR");
+
+double min,max,count,count2;
+
+
+	ifstream run_1;
+	run_1.open(Form("%s/IS_%d.root",root_dir,run1));
+	ifstream run_2;
+	run_2.open(Form("%s/IS_%d.root",root_dir,run2));
+		if (!run_1.good()){cout << "The root file of run "<< run1 <<" does not exist."<<endl; return; }
+	if (!run_2.good()){cout << "The root file of run "<< run2 <<" does not exist."<<endl; return; }
+
+	TFile *file_1 = new TFile(Form("%s/IS_%d.root",root_dir,run1),"read");
+ 	TFile *file_2 = new TFile(Form("%s/IS_%d.root",root_dir,run2),"read");
+	TFile *f = new TFile(Form("%s/ratio_w_%d_%d.root",root_dir,run1,run2),"RECREATE");
+
+//	TChain *tree = new TChain("tree",Form("Tree for run %d", run1));
+//	TChain *T = new TChain("T",Form("Tree for run %d", run2));
+//	TChain ch1("tree");
+//	tree->Add(Form("%s/IS_%d.root",root_dir,run1));
+//	TChain ch2("T");
+//	T->Add(Form("%s/IS_%d.root",root_dir,run2));
+
+ TTree *tree = (TTree*)file_1->Get("tree");
+ TTree *T = (TTree*)file_2->Get("tree");
+ 	T->SetBranchStatus("*",0);
+	T->SetBranchStatus("qsquared",1);
+	T->SetBranchStatus("invar_mass",1);
+	T->SetBranchStatus("theta_lab",1);
+	T->SetBranchStatus("Beam",1);
+	T->SetBranchStatus("efinal_lab",1);
+	T->SetBranchStatus("Sigma_rest",1);
+	T->SetBranchStatus("Xb_lab",1);
+	T->SetBranchStatus("Prot_momentum",1);
+
+	tree->SetBranchStatus("*",0);
+	tree->SetBranchStatus("qsquared",1);
+	tree->SetBranchStatus("invar_mass",1);
+	tree->SetBranchStatus("theta_lab",1);
+	tree->SetBranchStatus("Beam",1);
+	tree->SetBranchStatus("efinal_lab",1);
+	tree->SetBranchStatus("Sigma_rest",1);
+	tree->SetBranchStatus("Xb_lab",1);
+	tree->SetBranchStatus("Prot_momentum",1);
+	//Cut constants
+double Qmax =6;	
+double Qmin =2;
+double Wmax = 500;
+double Wmin = 1.5;
+double theta_min = 0*3.14159/180;
+double theta_max = 359*3.14159/180;
+double deltaEmax = 5;
+double deltaEmin = 0;
+
+	TCut QQ = Form("qsquared>=%f&&qsquared<=%f",Qmin,Qmax);
+	TCut W  = Form("invar_mass>=%f&&invar_mass<=%f",Wmin,Wmax);
+	TCut theta = Form("theta_lab>=%f&&theta_lab<=%f",theta_min,theta_max);
+	TCut deltaE= Form("(Beam-efinal_lab)>=%f&&(Beam-efinal_lab)<=%f",deltaEmin,deltaEmax);
+	TCut Sigma_pos = "Sigma_rest>=0";
+	TCut Pro_mo = "Prot_momentum>=0.0";
+
+	TCut Total = QQ&&theta&&deltaE&&Sigma_pos&&W&&Pro_mo;
+//"Sigma_rest"*
+TCanvas *c1 = new TCanvas("c2","c2",0,0,1000,900);
+c1->Divide(1,2);
+c1->cd(1);
+
+TH1F *Xb_L_1 = new TH1F("Xb_L_1","Xb_L_1",30,0,1);
+TH1F *Xb_L_2 = new TH1F("Xb_L_2","Xb_L_2",30,0,1);
+
+	tree->Draw("Xb_lab>>Xb_L_1","Sigma_rest"*Total,"");
+	Xb_L_1->SetMarkerStyle(5);
+	Xb_L_1->SetLineWidth(5);
+	double one_count = Xb_L_1->GetEntries();
+	
+	if(one_count == 0){cout << " You have zero events in the first histogram please readjust the limits."<<endl; return;}
+
+ 	Xb_L_1->Sumw2();	
+cout<< "Run "<< run1 << " has " << one_count << " events."<< endl;
+	Xb_L_1->Scale(1/one_count);
+	Xb_L_1->SetTitle("Counts in bins of Xb(Weighted).");
+	Xb_L_1->GetXaxis()->SetTitle("Xb_lab");
+  	Xb_L_1->GetXaxis()->SetTitleOffset(1.4);
+	Xb_L_1->GetYaxis()->SetTitle("Scaled_Counts(Counts/Total_Events)");
+	gPad->SetLogy();
+
+	//TCut W1  = Form("Invar_mass>=%f&&Invar_mass<=%f",Wmin,Wmax);
+	TCut Total1 = QQ&&theta&&deltaE&&Sigma_pos&&W&&Pro_mo;
+
+	T->Draw("Xb_lab>>Xb_L_2","Sigma_rest"*Total1,"same");
+	double two_count = Xb_L_2->GetEntries();
+	if(two_count == 0){cout << " You have zero events in the second histogram please readjust the limits."<<endl; return;}
+	Xb_L_2->Sumw2();
+cout<< "Run "<< run2 << " has " << two_count << " events."<< endl;
+	Xb_L_2->Scale(1/two_count);
+	Xb_L_2->SetLineColor(2);
+	Xb_L_2->SetMarkerStyle(4);
+	Xb_L_2->SetMarkerColor(2);
+	gStyle->SetOptStat(0); 
+
+
+	TLegend *mylegend1 = new TLegend(0.5,0.8,0.8,0.9);
+	mylegend1->SetFillStyle(0);
+	mylegend1->SetFillColor(0);
+	mylegend1->SetBorderSize(0);
+	mylegend1->SetTextSize(0.039);
+c1->Update();
+	
+
+
+
+	//if(one == 7){one++;}
+	if(run1/10 == run1/10.0){mylegend1->AddEntry(Xb_L_2,"Base Run","lep") ;}
+		else{mylegend1->AddEntry(Xb_L_1,Form("%s Run",one),"lep");}
+
+
+	if(run2/10 == run2/10.0){mylegend1->AddEntry(Xb_L_2,"Base Run","lep") ;}
+		else{mylegend1->AddEntry(Xb_L_2,Form("%s Run",two),"lep") ;}
+	
+	mylegend1->Draw("same");
+	c1->Update();
+	c1->cd(2);
+
+	TH1F *Xb_ratio= new TH1F("Xb_ratio",Form("Ratio of %s run and the %s run.(Weighted)",one,two),30,0,1);
+	Xb_ratio->GetXaxis()->SetTitle("Xb");
+	Xb_ratio->GetYaxis()->SetTitle(Form("%s/%s",one,two));
+	Xb_ratio->Divide(Xb_L_1,Xb_L_2,1,1);
+//	Xb_ratio ->Smooth();
+ 	/*Xb_ratio->GetXaxis()->SetRange(0,15);
+	max=Xb_ratio->GetMaximum();
+ 	Xb_ratio->GetXaxis()->SetRange(15,30);
+	 min= Xb_ratio->GetMinimum(0.5);
+	Xb_ratio->GetXaxis()->SetRange(0,30);*/
+	//Xb_ratio->SetMaximum(max+0.1);
+	//Xb_ratio->SetMinimum(min-0.1);
+	Xb_ratio ->Draw();
+	gPad-> SetGridx();
+	gPad-> SetGridy();
+	c1->cd(2);
+
+	double slope[30]={0};
+	double avgslope=0;
+	double A,B,dx=0.033;
+	for(int j=12;j<=25;j++){A=Xb_ratio->GetBinContent(j-1);B=Xb_ratio->GetBinContent(j);
+		slope[j]=(B-A)/dx;
+		//cout<<j*0.033<< " "<< A<<"  "<<B << " " <<slope[j]<<endl;
+		avgslope=slope[j]+avgslope;
+	}
+	avgslope=avgslope/((13)*1.0);
+	
+	cout<<"The Average slope beteen ~.4 to ~.8 " <<avgslope <<endl;
+
+
+
+double rad=3.14159/180.0;
+cout <<endl<<endl;
+printf ("The cut profile for the ratio of the %s run and the %s run :",one,two);
+cout << endl<<"--------------------------------------------------------------------- " << endl;
+cout  << "Q*Q:"<<"\t\t"<< "Max" <<"\t" <<setw(5) << Qmax << setw(5) << "Min" <<"\t"<< Qmin <<endl;
+cout  << "Invar Mass^2:"<<"\t"<<  "Max" <<"\t" <<setw(5) << Wmax << setw(5) << "Min" <<"\t"<< Wmin <<endl;
+cout  << "Theta:"<<"\t\t"<< "Max" <<"\t" <<setw(5)<<setprecision(4) << theta_max/rad << setw(5) << "Min" <<"\t"<<setprecision(4)<< theta_min/rad <<endl;
+cout  << "nu:"<<"\t\t"<< "Max" <<"\t" <<setw(5) << deltaEmax << setw(5) << "Min" <<"\t"<< deltaEmin <<endl;
+cout << "---------------------------------------------------------------------"<<endl<<endl;
+
+c1->Print(Form("%s/ratio_%d_%d_weighted.eps",img_dir,run1,run2), "eps");
+
+time_t finish = time(0) ;
+/*if(finish -start >= 60){
+ 	cout << "This program took " << floor((finish-start)/60) << " minutes and ";
+	double secs = (finish-start)/60.0 - floor((finish-start)/60);
+	cout << secs*60 << " seconds to run" <<endl; }
+else{ cout << "This program took " << finish-start << " seconds to run"<<endl;}
+*/
+f->Write();
+}
+
+
+
+
+/*	T2->Draw("xb_lab>>Xb_h_1(35,1,1.6)",Total);
+	Xb_h_1->SetTitle("Counts in bins of Xb.");
+	Xb_h_1->GetXaxis()->SetTitle("Xb_lab");
+	Xb_h_1->GetXaxis()->SetTitleOffset(1.4);
+	Xb_h_1->GetYaxis()->SetTitle("Counts");
+	T->Draw("xb_lab>>Xb_h_2(35,1,1.6)",Total,"same");
+	Xb_h_2->SetLineColor(2);
+	gStyle->SetOptStat(0); 
+	mylegend2 = new TLegend(0.6,0.6,0.8,0.8);
+	mylegend2->SetFillColor(0);
+	mylegend2->SetBorderSize(0);
+	mylegend2->SetTextSize(0.045);
+
+	int one = (run1/10.0 - run1/10)*10);
+	if(run1/10 == run1/10.0){mylegend1->AddEntry(Xb_h_2,"Base Run","l") ;}
+		else{mylegend2->AddEntry(Xb_h_1,Form("Scaled by %d",one),"l");}
+
+	int two = (run2/10.0 - run2/10)*10);
+	if(run2/10 == run2/10.0){mylegend1->AddEntry(Xb_h_2,"Base Run","l");}
+		else{mylegend2->AddEntry(Xb_h_2,Form("Scaled by %d",two,),"l") ;}
+
+
+	mylegend2->Draw("same");
+	c1->Update();
+
+c1->cd(4);
+	TH1F *Xb_ratio_h= new TH1F("Xb_ratio_h",Form("Ratio of run %d and %d",run1,run2),35,1.0,1.6);
+	
+
+	Xb_ratio_h->GetXaxis()->SetTitle("Xb_lab");
+	Xb_ratio_h->GetYaxis()->SetTitle(Form("%d/%d",run1,run2));
+	Xb_ratio_h->Divide(Xb_h_1,Xb_h_2,1,1);
+
+	Xb_ratio_h ->Draw();
+*/
+
+
+
+
+/*
+	TH1F *XbW1 = file_1->Get("Xb_lab_Weighted_low");
+	TH1F *X_l_W_L_1 = new TH1F("X_l_W_L_1","X_l_W_L_1",1000,0,1);
+		X_l_W_L_1 = (TH1F*)XbW1->Clone("X_l_W_L_1");
+		X_l_W_L_1->SetName(Form("Xb_lab_Weighted_low run %d",run1));
+		count = X_l_W_L_1->GetEntries();
+		cout << "There are " << count << " scattering events in run "<< run1<< " ."<<endl;
+		X_l_W_L_1->Scale(1/count);
+
+	TH1F *XbW2 = file_2->Get("Xb_lab_Weighted_low");
+	TH1F *X_l_W_L_2 = new TH1F("X_l_W_L_2","X_l_W_L_2",1000,0,1);
+		X_l_W_L_2 = (TH1F*)XbW2->Clone("X_l_W_L_2");
+		X_l_W_L_2->SetName(Form("Xb_lab_Weighted_low run %d",run2));
+		count = X_l_W_L_2->GetEntries();
+		cout << "There are " << count << " scattering events in run "<< run2<< " ."<<endl;
+		X_l_W_L_2->Scale(1/count);
+
+	TCanvas *c1 = new TCanvas("c1" ,"c1",900,700);
+	c1 ->Divide(2,1);
+	c1->cd(1);
+	X_l_W_L_1->Draw("xb_lab>=0.3");
+	c1->cd(2);
+	X_l_W_L_2->Draw();
+*/
+
+//		XbW1 ->Sumw2();2
