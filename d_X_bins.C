@@ -102,6 +102,8 @@ void d_X_bins(int run1=0, int run2=0,int quite =1,int quick =1) {
 ///Make trees for two runs
  	TTree *T = (TTree*)file_2->Get("tree");
  		T->SetBranchStatus("*",0);
+		T->SetBranchStatus("Beam",1);
+		T->SetBranchStatus("efinal_lab",1);
 		T->SetBranchStatus("qsquared",1);
 		T->SetBranchAddress("qsquared",&q1);
 		T->SetBranchStatus("invar_mass",1);
@@ -116,6 +118,8 @@ void d_X_bins(int run1=0, int run2=0,int quite =1,int quick =1) {
 	TTree *tree = (TTree*)file_1->Get("tree");
 		tree->SetBranchStatus("*",0);
 		tree->SetBranchStatus("qsquared",1);
+		tree->SetBranchStatus("efinal_lab",1);
+		tree->SetBranchStatus("Beam",1);
 		tree->SetBranchAddress("qsquared",&q2);
 		tree->SetBranchStatus("invar_mass",1);
 		tree->SetBranchStatus("theta_lab",1);
@@ -154,7 +158,7 @@ void d_X_bins(int run1=0, int run2=0,int quite =1,int quick =1) {
 //Histogram prep;
 	TH1F *H1[5]; //Run 1 Full histos
 	TH1F *H2[5]; //Run 2 Full histos
-///
+/*//
 	TCanvas *CC = new TCanvas("CC,");
 	TH1F *R1 = new TH1F("R1","Xbins run1",1000,0,2);
 	TH1F *R2 = new TH1F("R2","Xbins run1",1000,0,2);
@@ -162,7 +166,7 @@ void d_X_bins(int run1=0, int run2=0,int quite =1,int quick =1) {
 	T->Draw("Xb_lab>>R1","Sigma_rest"*Total);
 	tree->Draw("Xb_lab>>R2","Sigma_rest"*Total,"same");
 
-////
+*////
 	TCanvas *C[5];
 
 ////
@@ -220,7 +224,7 @@ H2[i] = new TH1F(Form("Run2_%4.2f",Qsq[i]),Form("Xbins of Run%d with Q[%4.2f]",r
 				else{skip2++;}
 			}
 ///Print statment for santity of running long runs;
-		if(quite==0){if(floor(j/50000000.0) == ceil(j/50000000.0)){cout << j <<" "<<"\n";}}
+		if(quite==0){if(floor(j/5000000.0) == ceil(j/5000000.0)){cout << j <<" "<<"\n";}}
 //Debbugging forcing the tree to stop at some # 
 		if(quick==1){if(j>20000000){break;}}
 	}

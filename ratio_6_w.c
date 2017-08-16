@@ -20,47 +20,51 @@
 #include <stdlib.h>     //for using the function sleep
 using namespace std;
 
-void ratio_6_w() {
+void ratio_6_w(int run1 =0, int run2 =0) {
 		time_t start = time(0) ;
 
 
 	cout << "\n" << "\n";
-int run1 =0;
-int run2 =0;
+
 int MOD  =0;
+if(run1 ==0 || run2 ==0){
 cout << "Please input the run numbers of the disturbution you like to look at the ratios of (1st/2nd)." <<endl;
 cin >> run1 ;
 cin >> run2 ;
 cout <<endl;
-
+}
 
 	double ones = ceil(((run1/100.0 - run1/100)-.000001)*100);
 	int oness = ones;
-	char* one;
+	std::string one_t;
 
-	switch(oness){ 	case 2:  one = "D"; break;
-					case 3:  one = "He3"; break;
-					case 4:  one = "He4"; break;
-					case 9:  one = "Be9"; break;
-					case 12: one = "C12"; break;
-					case 16: one = "O16"; break;
-					case 40: one = "Ca40"; break;
-					default: one = "No label "  ; }
+	switch(oness){ 	case 2:  one_t = "D"; break;
+					case 3:  one_t = "He3"; break;
+					case 4:  one_t = "He4"; break;
+					case 9:  one_t = "Be9"; break;
+					case 12: one_t = "C12"; break;
+					case 16: one_t = "O16"; break;
+					case 40: one_t = "Ca40"; break;
+					default: one_t = "No label "  ; }
 
 	double twos = ceil(((run2/100.0 - run2/100)-.000001)*100);
 	if(run2==4002){twos = floor((run2/100.0 - run2/100)*100);}
 	int twoss = twos;
-	char* two;
+	std::string two_t;
 
-	switch(twoss){ 	case 2:  two = "D"; break;
-					case 3:  two = "He3"; break;
-					case 4:  two = "He4"; break;
-					case 9:  two = "Be9"; break;
-					case 12: two = "C12"; break;
-					case 16: two = "O16"; break;
-					case 40: two = "Ca40"; break;
-					default: two = "No label"; }
+	switch(twoss){ 	case 2:  two_t = "D"; break;
+					case 3:  two_t = "He3"; break;
+					case 4:  two_t = "He4"; break;
+					case 9:  two_t = "Be9"; break;
+					case 12: two_t = "C12"; break;
+					case 16: two_t = "O16"; break;
+					case 40: two_t = "Ca40"; break;
+					default: two_t = "No label"; }
 
+	std::string one; 
+	one= one_t.c_str();
+	std::string two; 
+	two= two_t.c_str();	
 
 
   char* data_dir;
@@ -181,19 +185,19 @@ c1->Update();
 
 	//if(one == 7){one++;}
 	if(run1/10 == run1/10.0){mylegend1->AddEntry(Xb_L_2,"Base Run","lep") ;}
-		else{mylegend1->AddEntry(Xb_L_1,Form("%s Run",one),"lep");}
+		else{mylegend1->AddEntry(Xb_L_1,Form("%s Run",one.c_str()),"lep");}
 
 
 	if(run2/10 == run2/10.0){mylegend1->AddEntry(Xb_L_2,"Base Run","lep") ;}
-		else{mylegend1->AddEntry(Xb_L_2,Form("%s Run",two),"lep") ;}
+		else{mylegend1->AddEntry(Xb_L_2,Form("%s Run",two.c_str()),"lep") ;}
 	
 	mylegend1->Draw("same");
 	c1->Update();
 	c1->cd(2);
 
-	TH1F *Xb_ratio= new TH1F("Xb_ratio",Form("Ratio of %s run and the %s run.(Weighted)",one,two),30,0,1);
+	TH1F *Xb_ratio= new TH1F("Xb_ratio",Form("Ratio of %s run and the %s run.(Weighted)",one.c_str(),two.c_str()),30,0,1);
 	Xb_ratio->GetXaxis()->SetTitle("Xb");
-	Xb_ratio->GetYaxis()->SetTitle(Form("%s/%s",one,two));
+	Xb_ratio->GetYaxis()->SetTitle(Form("%s/%s",one.c_str(),two.c_str()));
 	Xb_ratio->Divide(Xb_L_1,Xb_L_2,1,1);
 //	Xb_ratio ->Smooth();
  	/*Xb_ratio->GetXaxis()->SetRange(0,15);
@@ -224,7 +228,7 @@ c1->Update();
 
 double rad=3.14159/180.0;
 cout <<endl<<endl;
-printf ("The cut profile for the ratio of the %s run and the %s run :",one,two);
+printf ("The cut profile for the ratio of the %s run and the %s run :",one.c_str(),two.c_str());
 cout << endl<<"--------------------------------------------------------------------- " << endl;
 cout  << "Q*Q:"<<"\t\t"<< "Max" <<"\t" <<setw(5) << Qmax << setw(5) << "Min" <<"\t"<< Qmin <<endl;
 cout  << "Invar Mass^2:"<<"\t"<<  "Max" <<"\t" <<setw(5) << Wmax << setw(5) << "Min" <<"\t"<< Wmin <<endl;

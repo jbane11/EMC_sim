@@ -98,8 +98,8 @@ void X_bins(int run1=0, int run2=0,int quite =0,int quick=1) {
 ///////////////////////////////////////////////////////////////
 
 ///tree vars
-	//double xb1,xb2,sig1,sig2, theta,theta2;
-	Float_t xb1,xb2,sig1,sig2, theta,theta2;
+	double xb1,xb2,sig1,sig2, theta,theta2;
+	//Float_t xb1,xb2,sig1,sig2, theta,theta2;
 	float q1,q2;
 
 ///Make trees for two runs
@@ -175,7 +175,7 @@ void X_bins(int run1=0, int run2=0,int quite =0,int quick=1) {
 	TH1F *H1[5]; //Run 1 Full histos
 	TH1F *H2[5]; //Run 2 Full histos
 ///
-
+/*
 	TCanvas *CC = new TCanvas("CC,");
 	TH1F *R1 = new TH1F("R1","Xbins run1",30,0,1);
 	TH1F *R2 = new TH1F("R2","Xbins run2",30,0,1);
@@ -199,13 +199,13 @@ cout << "Numerator has " << count22 <<" entries."<<endl;
 	Ratio1->GetYaxis()->SetTitle(Form("%s/%s",two,one));
 	Ratio1->Divide(R2,R1,1,1);
 	Ratio1->Draw();
-////
+*/////
 
 
 	TCanvas *C[5];
-/*
+
 ////
-	int N = T->GetEntries();
+	int N = T2->GetEntries();
 	int N2= tree->GetEntries();
 	int events=0;	
 	if(N>=N2){events=N;}else{events=N2;}	
@@ -226,7 +226,7 @@ H2[i] = new TH1F(Form("Run2_%4.2f",Qsq[i]),Form("Xbins of Run%d with Q[%4.2f]",r
 ////Event by event loop for both trees
 	for(int j=0;j<events;j++){
 		tree->GetEntry(j);
-		T->GetEntry(j);
+		T2->GetEntry(j);
 ////////run1 qsq cuts	
 		if(theta>=35*3.1415/180.0&&theta<=50*3.1415/180.0){
 		if(j<N){			
@@ -397,7 +397,7 @@ H2[i] = new TH1F(Form("Run2_%4.2f",Qsq[i]),Form("Xbins of Run%d with Q[%4.2f]",r
 
 
 	//
-?*/
+
      f->Write();
 	 time_t finish = time(0) ;
 

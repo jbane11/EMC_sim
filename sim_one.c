@@ -20,7 +20,7 @@
 #include <TTree.h>
 #include <TF1.h>
 #include <TNtuple.h>
-#include <TRandom.h>
+#include <TRandom.h>	
 #include <TRandom3.h>
 #include <math.h>
 
@@ -204,7 +204,7 @@ if(print == 10){cout << "Electron 4 vector" << "\t"<<"\t"<<  "Proton 4 vector " 
 //	if(i/1000000==i/1000000.0){cout << " mo = "<<Prot_momentum<<"  "<<endl;}
 // Random angle in degrees used for Lambda the incoming proton angle
 		double random_lam =rndm;//R->Rndm();
-		Lambda = ((random_lam)*180)*rad;
+		Lambda = ((random_lam)*360)*rad;
 
 // incomeing electron and proton 4 vectors.
     e[0] = elec_Beam_momentum;      //electron energy
@@ -533,7 +533,7 @@ double distribution(double A,double number[],double F_x[],double help[], double 
 	int x_floor = 0;//48;
 //Loop through the help array to speed up the final look up. help[50]
 //	if(A>0){for(int h=0;h<=50;h++){if(x >= help[h]){x_floor=10*h;if(x<help[h+1]){break;}}}}
-	double last_o,last_2;								
+	double last_o=0,last_2=0;								
 	int small = x_floor;	
 	double diff = abs(x-number[small]);
 	for(int i = 0;i<=500;i++){

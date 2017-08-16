@@ -102,6 +102,8 @@ void d_X_bins(int run1=0, int run2=0,int quite =1,int quick =1) {
 ///Make trees for two runs
  	TTree *T = (TTree*)file_2->Get("tree");
  		T->SetBranchStatus("*",0);
+		T->SetBranchStatus("Beam",1);
+		T->SetBranchStatus("efinal_lab",1);
 		T->SetBranchStatus("qsquared",1);
 		T->SetBranchAddress("qsquared",&q1);
 		T->SetBranchStatus("invar_mass",1);
@@ -116,6 +118,8 @@ void d_X_bins(int run1=0, int run2=0,int quite =1,int quick =1) {
 	TTree *tree = (TTree*)file_1->Get("tree");
 		tree->SetBranchStatus("*",0);
 		tree->SetBranchStatus("qsquared",1);
+		tree->SetBranchStatus("efinal_lab",1);
+		tree->SetBranchStatus("Beam",1);
 		tree->SetBranchAddress("qsquared",&q2);
 		tree->SetBranchStatus("invar_mass",1);
 		tree->SetBranchStatus("theta_lab",1);
@@ -133,17 +137,35 @@ void d_X_bins(int run1=0, int run2=0,int quite =1,int quick =1) {
 	TCut Q[5];	
 		for(int qi=0;qi<5;qi++){Q[qi]= Form("(abs(qsquared-%f)/qsquared)<=%f",Qsq[qi],DQsq[qi]);}
 
+	//Cut constants
+	double Qmax =6;	
+	double Qmin =2;
+	double Wmax = 500;
+	double Wmin = 1.5;
+	double theta_min = 0*3.14159/180;
+	double theta_max = 359*3.14159/180;
+	double deltaEmax = 5;
+	double deltaEmin = 0;
+
+	TCut QQ = Form("qsquared>=%f&&qsquared<=%f",Qmin,Qmax);
+	TCut W  = Form("invar_mass>=%f&&invar_mass<=%f",Wmin,Wmax);
+	TCut theta = Form("theta_lab>=%f&&theta_lab<=%f",theta_min,theta_max);
+	TCut deltaE= Form("(Beam-efinal_lab)>=%f&&(Beam-efinal_lab)<=%f",deltaEmin,deltaEmax);
+	TCut Sigma_pos = "Sigma_rest>=0";
+	TCut Pro_mo = "Prot_momentum>=0.0";
+	
+	TCut Total = QQ&&theta&&deltaE&&Sigma_pos&&W&&Pro_mo;
 //Histogram prep;
 	TH1F *H1[5]; //Run 1 Full histos
 	TH1F *H2[5]; //Run 2 Full histos
 ///
-/*	TCanvas *CC = new TCanvas("CC,");
+	TCanvas *CC = new TCanvas("CC,");
 	TH1F *R1 = new TH1F("R1","Xbins run1",1000,0,2);
 	TH1F *R2 = new TH1F("R2","Xbins run1",1000,0,2);
-	TCut Full= "1";
-	T->Draw("Xb_lab>>R1","Sigma_rest"*Full);
-	tree->Draw("Xb_lab>>R2","Sigma_rest"*Full,"same");
-*/
+	
+	T->Draw("Xb_lab>>R1","Sigma_rest"*Total);
+	tree->Draw("Xb_lab>>R2","Sigma_rest"*Total,"same");
+
 ////
 	TCanvas *C[5];
 
@@ -202,7 +224,7 @@ H2[i] = new TH1F(Form("Run2_%4.2f",Qsq[i]),Form("Xbins of Run%d with Q[%4.2f]",r
 				else{skip2++;}
 			}
 ///Print statment for santity of running long runs;
-		if(quite==0){if(floor(j/50000000.0) == ceil(j/50000000.0)){cout << j <<" "<<"\n";}}
+		if(quite==0){if(floor(j/5000000.0) == ceil(j/5000000.0)){cout << j <<" "<<"\n";}}
 //Debbugging forcing the tree to stop at some # 
 		if(quick==1){if(j>20000000){break;}}
 	}
