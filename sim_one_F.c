@@ -182,7 +182,7 @@ cout << "Run " << run << " already exists. Would you like to replace it? 1 for y
 	  struct tm * timeinfo;
 	  time (&rawtime);
 	  timeinfo = localtime (&rawtime);
-	  printf("Started run %d on %s",run, asctime(timeinfo));
+	 if(ask==0) printf("Started run %d on %s",run, asctime(timeinfo));
 
 
 
@@ -495,7 +495,9 @@ if(ask==0){
 	cout <<scatt<< "  Electrons were scattered."<<endl<<endl<<endl;
 	cout << "Q^2" <<"\t "<< "P_f" <<"\t "<<  "F2"<< "\t"<<"Low_P"<< "\t "<<"Sigma"<<"\t  "<<"W"<<endl;
 	cout << M <<"\t "<< N<< "\t " <<  O<< "\t "<<Low_P<< "\t "<<MOK<<"\t  "<<OO<<endl;
-}
+	}
+
+	exit(1);
 }//End of main program
 ///////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////
