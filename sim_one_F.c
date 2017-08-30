@@ -41,11 +41,27 @@ double Boostx(double A[4], double gamma, double beta, int i);
 
 double Ftwo_mod(double Ftwo, double x);
 double	cross_section(double e_final, double theta, double e_in,double F_two,double xb);
+int history(int run, int mo_dist, int num_of_e, double Ebeam, double lam_min, double lam_max, double theta_min, double theta_max);
 
 
 //run name .... run1 mom dist.
-void sim_one_F(int run =0,int run1 =0,int pri=0){
+void sim_one_F(int ask = 0 ,int run1 =0,int run =0,double spread = 15.0,double bottom = 35.0, double lam_spread=180, double lam_min=0, int pri=0){
+	if(ask !=0&&ask !=1){cout<<"\n\n\n";
+		cout<<"////////////////////////////////////\n";
+		cout <<"\tUse the following arguments \n";
+		cout <<"\tQuite mode switch on/off = 1/0 (int)\n";
+		cout <<"\tMomentum distribution 2,3,4,9,12.... (int)\n";
+		cout <<"\tName of run, try to end with the momentum dist. Ex 4002: (int)\n";
+		cout <<"\t4 doubles for Range of theta, min. theta, range of Lambda, min. Lambda\n";
+		cout <<"\tDebugging print statment for vecotor transformations on/off =1/0 (int)\n";
+		cout<<"////////////////////////////////////\n";
+			return;
+			}	
+
 	int no_O=1;	
+
+
+
 
 	time_t start = time(0) ;
 	cout << "\n" << "\n";
@@ -53,32 +69,32 @@ void sim_one_F(int run =0,int run1 =0,int pri=0){
 // Enviromental varibles for 
   char* data_dir;  data_dir = getenv ("OUTPUT_DIR");
   char* root_dir;  root_dir = getenv ("OUT_DIR");
+	if(ask==0){
 	if(run1==0){
 cout << "Please input the number of the momentum disturbution you would like to use." <<"\n";;
 		cin >> run1;}
 	if(run==0){
 cout << "Please input the run number, you would like to call this run." <<"\n";;
 		cin >> run;}
+}
 
-	double spread = 15.0;
-	double bottom = 35.0;
+
 
 	char output_file[100];
 	int n = sprintf(output_file,"%s/IS_%d.root",root_dir,run);
 	ifstream ifile(output_file);
 
-
+	if(ask==0){
 	if (ifile) {
 cout << "Run " << run << " already exists. Would you like to replace it? 1 for yes 0 for no"<<endl;
 		int replace; 
 		cin >> replace ;
 		cout <<endl;
 	if(replace == 0){return;}	
-	 }	
+	 }}
 //Output root file!
 	remove(Form("%s/IS_%d.root",root_dir,run));
 	TFile *f = new TFile(Form("%s/IS_%d.root",root_dir,run),"RECREATE");
-
 
 
 
@@ -200,6 +216,16 @@ TTree *tree = new TTree("tree",Form("Tree for run %d", run));
 TNtuple *Randoms = new TNtuple("Randoms","Random_nums","Prot_mom:random_lam:scatt_theta:random_loss");
 	double R1=0,R2=0,R3=0,R4=0;
 
+
+	int hist =100;
+		hist = history(run, run1, number_of_electrons, elec_Beam_momentum, lam_min, (lam_min+lam_spread),bottom, (bottom+spread) );
+	if(hist==1){cout << "Closing history: error" <<endl; return;}
+	
+	if(ask==0){	if(hist==0){cout <<"Storing Run " << run <<" in the sim_history.csv. "<<endl;}}
+
+
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Loop for the number of electrons
 	for(i=1; i <= number_of_electrons; i++){
@@ -216,7 +242,7 @@ if(print == 10){cout << "Electron 4 vector" << "\t"<<"\t"<<  "Proton 4 vector " 
 //	if(i/1000000==i/1000000.0){cout << " mo = "<<Prot_momentum<<"  "<<endl;}
 // Random angle in degrees used for Lambda the incoming proton angle
 		double random_lam =rndm;//R->Rndm();
-		Lambda = ((random_lam)*180+180)*rad;
+		Lambda = ((random_lam)*lam_spread+lam_min)*rad;
 		R2= random_lam;
 // incomeing electron and proton 4 vectors.
     e[0] = elec_Beam_momentum;      //electron energy
@@ -416,12 +442,13 @@ Randoms->Fill(R1,R2,R3,R4);
 
 //	if(i/1000000 == i/1000000.0){ cout << Lambda/rad << " "<< Qsquared<<" "<<  theta/rad<<" "<< xb <<" "<<e_final[0]<<" "<<F_two<< " "<< Prot_momentum<< " "<<diff_cross<<" "<<diffcross_mod<<" " <<deltaE_rest<<" "<< QQ << " "<<x<< " "<<invar_mass_RF<< " "<< invar_mass << " "<<diff_cross_lab<<" "<<diffcross_mod_lab<<" "<<"\n";}
 //cout << i << " "<< scatt <<endl<<endl;
-
-if(floor(i/(number_of_electrons/100.0)) == ceil(i/(number_of_electrons/100.0))){cout << i <<" "<<"\n";}
+if(ask==0){
+if(floor(i/(number_of_electrons/100.0)) == ceil(i/(number_of_electrons/100.0))){cout << i <<" \t"<< i/(number_of_electrons*1.0)*100<<"%"<<"\n";}}
 tree->Fill();
 scatt++;
 
 //Time per event calculator, avg. over 10 mil events
+if(ask==0){
 if(floor(i/(number_of_electrons/4.0)) == ceil(i/(number_of_electrons/4.0))){
   	 		 time_t rawtime1;
 	  		struct tm * timeinfo1;
@@ -438,6 +465,7 @@ if(floor(i/(number_of_electrons/4.0)) == ceil(i/(number_of_electrons/4.0))){
 			double time_left = (number_of_electrons-i)/eps;
 		cout <<"This simulation should be done in approximently " << time_left/60.0<<" minutes!"<<"\n";
 			}
+	}
 
 
 
@@ -453,19 +481,21 @@ lists.close();f->Write();
 
 //Output statment for general information
  time_t finish = time(0) ;
- cout <<"\n" << i-1 << " " << "electrons were sent." <<"\n";
- cout <<missed << " events have been thrown out due to q^2 Value or unphysical results." << "\n";
+if(ask==0){
+	 cout <<"\n" << i-1 << " " << "electrons were sent." <<"\n";
+	 cout <<missed << " events have been thrown out due to q^2 Value or unphysical results." << " \n";
 
 
-if(finish -start >= 60){
- 	cout << "This program took " << floor((finish-start)/60.0) << " minutes and ";
-	double secs = (finish-start)/60.0 - floor((finish-start)/60.0);
-	cout << secs*60 << " seconds to run" <<"\n"; }
-else{ cout << "This program took " << finish-start << " seconds to run"<<"\n";}
+	if(finish -start >= 60){
+ 		cout << "This program took " << floor((finish-start)/60.0) << " minutes and ";
+		double secs = (finish-start)/60.0 - floor((finish-start)/60.0);
+		cout << secs*60 << " seconds to run" <<"\n"; }
+	else{ cout << "This program took " << finish-start << " seconds to run"<<"\n";}
 
-cout <<scatt<< "  Electrons were scattered."<<endl<<endl<<endl;
-cout << "Q^2" <<"\t "<< "P_f" <<"\t "<<  "F2"<< "\t"<<"Low_P"<< "\t "<<"Sigma"<<"\t  "<<"W"<<endl;
-cout << M <<"\t "<< N<< "\t " <<  O<< "\t "<<Low_P<< "\t "<<MOK<<"\t  "<<OO<<endl;
+	cout <<scatt<< "  Electrons were scattered."<<endl<<endl<<endl;
+	cout << "Q^2" <<"\t "<< "P_f" <<"\t "<<  "F2"<< "\t"<<"Low_P"<< "\t "<<"Sigma"<<"\t  "<<"W"<<endl;
+	cout << M <<"\t "<< N<< "\t " <<  O<< "\t "<<Low_P<< "\t "<<MOK<<"\t  "<<OO<<endl;
+}
 }//End of main program
 ///////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////
@@ -584,4 +614,23 @@ double	cross_section(double e_final, double theta, double e_in,double F_two,doub
 		   diffcross*=0.01973*0.01973*1e9;
 
 return diffcross;}
+
+
+//History takes some basic info about this run and insert it into a run history file.
+int history(int run=0, int mo_dist=0, int num_of_e=0, double Ebeam=0, double lam_min=0, double lam_max=0, double theta_min=0, double theta_max=0){
+  	  
+	  time_t rawtime;
+	  struct tm * date;
+	  time (&rawtime);
+	  date = localtime (&rawtime);
+	FILE *pFile;
+   	pFile = fopen ("sim_history.csv","app");
+	if(pFile==NULL){cout <<"Error : History file \n"; return 1;}
+
+
+	fprintf(pFile,"%d,%d,%d,%4.2f,%4.2f,%4.2f,%4.2f,%4.2f,%s",run, mo_dist,num_of_e,Ebeam,lam_min,lam_max,theta_min,theta_max,asctime(date));	
+	
+	fclose(pFile);
+return 0;
+}
 
